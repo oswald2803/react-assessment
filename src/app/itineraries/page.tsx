@@ -1,15 +1,41 @@
 "use client";
 
 import * as React from "react";
+import api from "../../../api.json";
 import Image from "next/image";
 import Button from "@mui/material/Button";
-import { QuestionMark } from "@mui/icons-material";
+import { CurrencyPound, QuestionMark, SentimentSatisfiedAlt, StarBorder } from "@mui/icons-material";
 import { Search } from "@mui/icons-material";
 import { FilterAltOutlined } from "@mui/icons-material";
+import Link from "next/link";
+import { Menu, MenuItem } from "@mui/material";
 
 
 export default function Page() {
 
+    const logo: { [key: string]: string } = {
+        "Wizzair.com": "logos/wizzair.svg",
+        "British Airways": "logos/britishAirways.svg",
+        "Lufthansa": "logos/lufthansa.svg",
+        "Trip.com": "logos/tripco.svg",
+        "Kiwi.com": "logos/kiwico.svg",
+        "CheapFligths": "logos/cheapfly.svg",
+      };
+
+      const [searchTerm, setSearchTerm] = React.useState<string>("");
+
+  const filteredItineraries = api.itineraries.filter((it) =>
+    it.agent.toLowerCase().startsWith(searchTerm.toLowerCase())
+  );
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <div>
@@ -36,6 +62,8 @@ export default function Page() {
               type="text"
               placeholder="Search"
               className="ml-2 w-full bg-transparent outline-none text-gray-600 placeholder-gray-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           {/* filter button */}
@@ -54,11 +82,71 @@ export default function Page() {
                 backgroundColor: "#E0E0E0",
               },
             }}
+            aria-controls={open ? "basic-menu" : undefined}
+            aria-haspopup="true"
+            aria-expanded={open ? "true" : undefined}
+            onClick={handleClick}
           >
             <FilterAltOutlined />
           </Button>
           </div> 
-          </div>         
+          <Menu
+          id="basic-menu"
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
+          anchorOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "left",
+          }}
+          MenuListProps={{
+            "aria-labelledby": "basic-button",
+          }}
+        >
+          <MenuItem className="flex gap-3" onClick={handleClose}>
+            <SentimentSatisfiedAlt></SentimentSatisfiedAlt>Most Popular
+          </MenuItem>
+          <MenuItem className="flex gap-3" onClick={handleClose}>
+            <CurrencyPound></CurrencyPound>Price, Low to High
+          </MenuItem>
+          <MenuItem className="flex gap-3" onClick={handleClose}>
+            <StarBorder></StarBorder>Rate, High to Low
+          </MenuItem>
+        </Menu>
+      </div>
+      <div className="flex mt-7">
+        <p>Select the itinerary from the list below</p>
+      </div>
+      <div className=""></div>
+      <div className="mt-10 mr-10">
+        <div className="text-center ">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="px-2 py-2">Id Itinerarie</div>
+            <div className="px-2 py-2">Price</div>
+            <div className="px-2 py-2">Agent</div>
+            <div className="px-2 py-2">Agent rating</div>
+          </div>
+          {filteredItineraries.map((it) => (
+            <Link
+              href={`/itineraries/${it.id}`}
+              key={it.id}
+              className="grid grid-cols-4 gap-4 border-2 border-[#c5c5c5] hover:bg-[#ccffe7] hover:border-[#8aaf9e] mb-4 rounded-lg"
+            >
+              <div className="px-4 py-3">{it.id}</div>
+              <div className="px-4 py-3">{it.price}</div>
+              <div className="flex gap-2 justify-center px-4 py-3">
+                <Image src={logo[it.agent]} alt="Logo" width={18} height={22} />
+                {it.agent}
+              </div>
+              <div className="px-4 py-3">{it.agent_rating}</div>
+            </Link>
+          ))}
+        </div>
+      </div>       
     </div>
   );
 }
